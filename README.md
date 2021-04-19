@@ -227,6 +227,13 @@ var noSparse = qs.parse('a[1]=b&a[15]=c');
 assert.deepEqual(noSparse, { a: ['b', 'c'] });
 ```
 
+You may also use `allowSparse` option to parse sparse arrays:
+
+```javascript
+var sparseArray = qs.parse('a[1]=2&a[3]=5', { allowSparse: true });
+assert.deepEqual(sparseArray, { a: [, '2', , '5'] });
+```
+
 Note that an empty string is also a value, and will be preserved:
 
 ```javascript
@@ -279,6 +286,17 @@ var arraysOfObjects = qs.parse('a=b,c', { comma: true })
 assert.deepEqual(arraysOfObjects, { a: ['b', 'c'] })
 ```
 (_this cannot convert nested objects, such as `a={b:1},{c:d}`_)
+
+### Parsing primitive/scalar values (numbers, booleans, null, etc)
+
+By default, all values are parsed as strings. This behavior will not change and is explained in [issue #91](https://github.com/ljharb/qs/issues/91).
+
+```javascript
+var primitiveValues = qs.parse('a=15&b=true&c=null');
+assert.deepEqual(primitiveValues, { a: '15', b: 'true', c: 'null' });
+```
+
+If you wish to auto-convert values which look like numbers, booleans, and other values into their primitive counterparts, you can use the [query-types Express JS middleware](https://github.com/xpepermint/query-types) which will auto-convert all request query parameters.
 
 ### Stringifying
 
@@ -345,7 +363,7 @@ var encoded = qs.stringify({ a: { b: 'c' } }, { encoder: function (str, defaultE
 The type argument is also provided to the decoder:
 
 ```javascript
-var decoded = qs.parse('x=z', { decoder: function (str, defaultEncoder, charset, type) {
+var decoded = qs.parse('x=z', { decoder: function (str, defaultDecoder, charset, type) {
     if (type === 'key') {
         return // Decoded key
     } else if (type === 'value') {
